@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invitation Generator</title>
+    <link rel="shortcut icon" href="./icon.png" type="image/x-icon" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+
+    <style>
+      :root {
+        --md-primary: #1976d2;
+        --bg-gradient: linear-gradient(
+          -45deg,
+          #ee7752,
+          #e73c7e,
+          #23a6d5,
+          #23d5ab
+        );
+        --card-bg: rgba(255, 255, 255, 0.9);
+        --text-color: #212529;
+      }
+
+      [data-bs-theme="dark"] {
+        --md-primary: #42a5f5;
+        --card-bg: rgba(33, 37, 41, 0.95);
+        --text-color: #f8f9fa;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--bg-gradient);
+        background-size: 400% 400%;
+        animation: gradientBG 15s ease infinite;
+        min-height: 100vh;
+        padding-bottom: 100px;
+        color: var(--text-color);
+        transition: 0.3s;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.7);
+        z-index: -1;
+      }
+      [data-bs-theme="dark"] body::before {
+        background: rgba(0, 0, 0, 0.8);
+      }
+
+      @keyframes gradientBG {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      .app-header {
+        padding: 25px 0 10px 0;
+        text-align: center;
+        position: relative;
+      }
+      .app-logo {
+        height: 45px;
+        filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.1));
+      }
+      .theme-toggle {
+        position: absolute;
+        right: 20px;
+        top: 30px;
+        cursor: pointer;
+        font-size: 1.5rem;
+        color: var(--md-primary);
+      }
+
+      .card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        background: var(--card-bg);
+        backdrop-filter: blur(10px);
+        margin-top: 1rem;
+      }
+
+      .page {
+        display: none;
+      }
+      .page.active {
+        display: block !important;
+        animation: fadeIn 0.4s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--card-bg);
+        height: 75px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+      }
+
+      .nav-item {
+        text-align: center;
+        color: #999;
+        font-size: 0.75rem;
+        cursor: pointer;
+      }
+      .nav-item i {
+        font-size: 1.4rem;
+        display: block;
+      }
+      .nav-item.active {
+        color: var(--md-primary);
+        font-weight: bold;
+      }
+
+      #customToast {
+        position: fixed;
+        top: -100px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 2050;
+        min-width: 300px;
+        opacity: 0;
+        display: none;
+        transition: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      }
+      #customToast.show {
+        display: flex !important;
+        top: 25px;
+        opacity: 1;
+      }
+
+      .btn-wa {
+        background: #25d366;
+        color: white;
+        border-radius: 8px;
+        padding: 6px 12px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+      }
+      .btn-wa:hover {
+        background: #1eb954;
+        color: white;
+      }
+    </style>
+  </head>
+  <body data-bs-theme="light">
+    <header class="app-header">
+      <div class="container">
+        <img src="./logo-web.png" alt="Logo" class="app-logo" />
+        <div class="theme-toggle" onclick="toggleTheme()">
+          <i id="themeIcon" class="bi bi-moon-stars-fill"></i>
+        </div>
+      </div>
+    </header>
+
+    <div
+      id="customToast"
+      class="alert shadow-lg border-0 align-items-center justify-content-center px-4 py-3"
+      role="alert"
+    >
+      <i id="toastIcon" class="bi me-2 fs-5"></i>
+      <div id="toastMessage" class="fw-bold"></div>
+    </div>
+
+    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 20px">
+          <div class="modal-header border-0">
+            <h5 class="fw-bold m-0">Edit Nama Tamu</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <input
+              type="text"
+              id="editGuestName"
+              class="form-control"
+              placeholder="Nama baru..."
+            />
+            <input type="hidden" id="editRowId" />
+          </div>
+          <div class="modal-footer border-0">
+            <button
+              type="button"
+              class="btn btn-primary w-100 py-2"
+              onclick="saveEdit()"
+              style="border-radius: 12px"
+            >
+              Simpan Perubahan
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="clearAllModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 20px">
+          <div class="modal-body text-center p-4">
+            <i class="bi bi-exclamation-circle text-danger display-1 mb-3"></i>
+            <h4 class="fw-bold">Hapus Semua Data?</h4>
+            <p class="text-muted">
+              Semua daftar tamu akan dihapus secara permanen dari penyimpanan
+              lokal.
+            </p>
+            <div class="d-flex gap-2 mt-4">
+              <button
+                type="button"
+                class="btn btn-light w-100 py-2"
+                data-bs-dismiss="modal"
+                style="border-radius: 12px"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                class="btn btn-danger w-100 py-2"
+                onclick="executeClearAll()"
+                style="border-radius: 12px"
+              >
+                Ya, Hapus Semua
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mb-5">
+      <section id="pageInput" class="page active">
+        <div class="card p-4">
+          <h4 class="fw-bold text-primary mb-3">Link Generator</h4>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-bold">LINK DASAR</label>
+              <input
+                type="text"
+                id="baseLink"
+                class="form-control"
+                value="https://domain.com"
+                onchange="fixUrl(this)"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold">NAMA MEMPELAI</label>
+              <input
+                type="text"
+                id="mempelai"
+                class="form-control"
+                placeholder="Romi & Julia"
+              />
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-bold"
+                >DAFTAR TAMU (PER BARIS)</label
+              >
+              <textarea
+                id="guestList"
+                class="form-control"
+                rows="5"
+                placeholder="Budi&#10;Siska Amelia"
+              ></textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-bold">TEMPLATE CHAT</label>
+              <textarea id="chatTemplate" class="form-control" rows="5">
+Assalamualaikum / Halo *[NAMA_TAMU]*
+
+Dengan penuh kebahagiaan,
+kami mengundang Bapak/Ibu/Saudara/i
+untuk hadir pada acara pernikahan kami.
+
+Silakan buka undangan digital pada tautan berikut:
+[LINK_UNDANGAN]
+
+Merupakan suatu kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan untuk hadir dan memberikan doa restu.✨
+
+Mohon konfirmasi kehadiran Anda. Terima kasih.
+
+_Mohon maaf perihal undangan hanya dibagikan melalui pesan ini_
+
+Salam hangat, [NAMA_MEMPELAI]</textarea
+              >
+            </div>
+            <div class="col-12 mt-3">
+              <div class="row g-2">
+                <div class="col-8">
+                  <button
+                    onclick="processAndGo()"
+                    class="btn btn-primary w-100 shadow py-3 fw-bold"
+                  >
+                    GENERATE SEKARANG <i class="bi bi-magic ms-2"></i>
+                  </button>
+                </div>
+                <div class="col-4">
+                  <button
+                    onclick="saveSettings()"
+                    class="btn btn-outline-primary w-100 shadow py-3 fw-bold"
+                    title="Simpan Konfigurasi"
+                  >
+                    <i class="bi bi-floppy-fill me-2"></i> SIMPAN
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="pageResult" class="page">
+        <div class="card p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold text-primary m-0">
+              Hasil <span id="countBadge" class="badge bg-primary ms-2">0</span>
+            </h4>
+            <button
+              onclick="clearAllResults()"
+              class="btn btn-sm btn-outline-danger"
+            >
+              <i class="bi bi-trash"></i> Hapus Semua
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <tbody id="resultBody"></tbody>
+            </table>
+          </div>
+          <div id="emptyState" class="text-center py-5">
+            <i class="bi bi-clipboard-x fs-1 text-muted"></i>
+            <p class="text-muted">Belum ada data generated.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <nav class="bottom-nav">
+      <div
+        class="nav-item active"
+        id="navInput"
+        onclick="showPage('pageInput')"
+      >
+        <i class="bi bi-gear-fill"></i><span>Config</span>
+      </div>
+      <div class="nav-item" id="navResult" onclick="showPage('pageResult')">
+        <i class="bi bi-send-check-fill"></i><span>Hasil</span>
+      </div>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      let guestsData = JSON.parse(localStorage.getItem("savedGuests")) || [];
+      const editModal = new bootstrap.Modal(
+        document.getElementById("editModal")
+      );
+      const clearAllModal = new bootstrap.Modal(
+        document.getElementById("clearAllModal")
+      );
+
+      window.onload = () => {
+        if (guestsData.length > 0) renderTable();
+      };
+
+      function fixUrl(input) {
+        let val = input.value.trim();
+        if (val && !val.startsWith("http")) val = "https://" + val;
+        input.value = val.replace(/\/$/, "");
+      }
+      window.onload = () => {
+        if (guestsData.length > 0) renderTable();
+        loadSettings(); // Memuat data yang tersimpan
+      };
+
+      function saveSettings() {
+        const settings = {
+          baseLink: document.getElementById("baseLink").value.trim(),
+          mempelai: document.getElementById("mempelai").value.trim(),
+          chatTemplate: document.getElementById("chatTemplate").value,
+        };
+
+        localStorage.setItem("invitationSettings", JSON.stringify(settings));
+        showNotify("Konfigurasi tersimpan!", "success");
+      }
+
+      // Fungsi untuk memuat pengaturan saat halaman dibuka
+      function loadSettings() {
+        const savedSettings = localStorage.getItem("invitationSettings");
+        if (savedSettings) {
+          const settings = JSON.parse(savedSettings);
+          document.getElementById("baseLink").value =
+            settings.baseLink || "https://domain.com";
+          document.getElementById("mempelai").value = settings.mempelai || "";
+          document.getElementById("chatTemplate").value =
+            settings.chatTemplate || "";
+
+          // Opsional: Jika ingin memberi tahu pengguna data dimuat
+          console.log("Settings loaded from storage");
+        }
+      }
+
+      function processAndGo() {
+        const base = document.getElementById("baseLink").value.trim();
+        const mempelai = document.getElementById("mempelai").value.trim();
+        const guestInput = document.getElementById("guestList").value.trim();
+        if (!mempelai || !guestInput)
+          return showNotify("Data belum lengkap!", "important");
+
+        const slug = mempelai
+          .toLowerCase()
+          .replace(/&/g, "-")
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-+|-+$/g, "");
+
+        guestInput.split("\n").forEach((name) => {
+          if (name.trim()) {
+            const finalUrl = `${base}/${slug}/?to=${encodeURIComponent(
+              name.trim()
+            )}`;
+            guestsData.push({
+              id: Date.now() + Math.random(),
+              name: name.trim(),
+              url: finalUrl,
+            });
+          }
+        });
+
+        saveToStorage();
+        renderTable();
+        showPage("pageResult");
+        showNotify(guestsData.length + " Link tersedia.");
+      }
+
+      function renderTable() {
+        const body = document.getElementById("resultBody");
+        const template = document.getElementById("chatTemplate").value;
+        const mempelai = document.getElementById("mempelai").value;
+        body.innerHTML = "";
+
+        guestsData.forEach((guest) => {
+          const chat = template
+            .replace(/\[NAMA_TAMU\]/g, guest.name)
+            .replace(/\[LINK_UNDANGAN\]/g, guest.url)
+            .replace(/\[NAMA_MEMPELAI\]/g, mempelai);
+          const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(
+            chat
+          )}`;
+
+          body.innerHTML += `
+            <tr id="row-${guest.id}">
+              <td>
+                <div class="fw-bold">${guest.name}</div>
+                <div class="text-muted small text-truncate" style="max-width:140px">${guest.url}</div>
+              </td>
+              <td class="text-end">
+                <div class="btn-group shadow-sm">
+                  <button class="btn btn-sm btn-light border" onclick="copyText('${guest.url}')" title="Copy Link"><i class="bi bi-link-45deg"></i></button>
+                  <button class="btn btn-sm btn-light border" onclick="openEdit('${guest.id}', '${guest.name}')" title="Edit Nama"><i class="bi bi-pencil"></i></button>
+                  <a href="${waUrl}" target="_blank" class="btn-wa" title="Kirim WA"><i class="bi bi-whatsapp"></i></a>
+                  <button class="btn btn-sm btn-outline-danger border" onclick="deleteGuest('${guest.id}')" title="Hapus"><i class="bi bi-trash"></i></button>
+                </div>
+              </td>
+            </tr>`;
+        });
+        updateBadge();
+      }
+
+      function openEdit(id, name) {
+        document.getElementById("editGuestName").value = name;
+        document.getElementById("editRowId").value = id;
+        editModal.show();
+      }
+
+      function saveEdit() {
+        const id = document.getElementById("editRowId").value;
+        const newName = document.getElementById("editGuestName").value;
+        const index = guestsData.findIndex((g) => g.id == id);
+        if (index > -1) {
+          guestsData[index].name = newName;
+          const base = document.getElementById("baseLink").value;
+          const mempelai = document.getElementById("mempelai").value;
+          const slug = mempelai.toLowerCase().replace(/\s+/g, "-");
+          guestsData[index].url = `${base}/${slug}/?to=${encodeURIComponent(
+            newName
+          )}`;
+          saveToStorage();
+          renderTable();
+          editModal.hide();
+          showNotify("Data diperbarui");
+        }
+      }
+
+      function saveToStorage() {
+        localStorage.setItem("savedGuests", JSON.stringify(guestsData));
+      }
+
+      function deleteGuest(id) {
+        guestsData = guestsData.filter((g) => g.id != id);
+        saveToStorage();
+        renderTable();
+        showNotify("Tamu dihapus", "important");
+      }
+
+      function clearAllResults() {
+        if (guestsData.length === 0)
+          return showNotify("Daftar sudah kosong", "important");
+        clearAllModal.show();
+      }
+
+      function executeClearAll() {
+        guestsData = [];
+        saveToStorage();
+        renderTable();
+        clearAllModal.hide();
+        showNotify("Data dibersihkan", "important");
+      }
+
+      function updateBadge() {
+        const len = guestsData.length;
+        document.getElementById("countBadge").innerText = len;
+        document.getElementById("emptyState").style.display =
+          len > 0 ? "none" : "block";
+      }
+
+      function toggleTheme() {
+        const body = document.body;
+        const icon = document.getElementById("themeIcon");
+        if (body.getAttribute("data-bs-theme") === "light") {
+          body.setAttribute("data-bs-theme", "dark");
+          icon.className = "bi bi-sun-fill";
+        } else {
+          body.setAttribute("data-bs-theme", "light");
+          icon.className = "bi bi-moon-stars-fill";
+        }
+      }
+
+      function showPage(id) {
+        document
+          .querySelectorAll(".page")
+          .forEach((p) => p.classList.remove("active"));
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((n) => n.classList.remove("active"));
+        const selectedPage = document.getElementById(id);
+        selectedPage.classList.add("active");
+        document
+          .getElementById(id === "pageInput" ? "navInput" : "navResult")
+          .classList.add("active");
+        window.scrollTo(0, 0);
+      }
+
+      function showNotify(msg, type = "success") {
+        const t = document.getElementById("customToast");
+        const icon = document.getElementById("toastIcon");
+        t.className = `alert shadow-lg border-0 align-items-center justify-content-center px-4 py-3 ${
+          type === "important" ? "alert-danger" : "alert-success"
+        } text-white`;
+        icon.className = `bi ${
+          type === "important" ? "bi-exclamation-triangle" : "bi-check-circle"
+        } me-2`;
+        document.getElementById("toastMessage").innerText = msg;
+        t.style.display = "flex";
+        t.classList.add("show");
+        setTimeout(() => {
+          t.classList.remove("show");
+        }, 3000);
+      }
+
+      function copyText(text) {
+        navigator.clipboard.writeText(text);
+        showNotify("Link disalin!");
+      }
+    </script>
+  </body>
+</html>
